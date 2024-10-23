@@ -225,3 +225,29 @@ browser.browserAction.onClicked.addListener((tab) => {
   });
 });
 
+
+
+
+
+
+
+
+
+
+
+// Listener para receber mensagens do popup e responder com os dados necessários
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const { action, tabId, tabUrl } = message;
+
+  if (action === "getThirdPartyDomains") {
+      sendResponse(getThirdPartyRequests(tabId));
+  } else if (action === "categorizeCookiesAndSupercookies") {
+      categorizeAndCountCookiesAndSupercookies(tabId, tabUrl).then(sendResponse);
+  } else if (action === "getLocalStorage") {
+      fetchLocalStorage(tabId).then(sendResponse);
+  } else if (action === "getSessionStorage") {
+      fetchSessionStorage(tabId).then(sendResponse);
+  }
+
+  return true;  // Retorna true para indicar que a resposta será feita de forma assíncrona
+});

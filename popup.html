@@ -1,25 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Third-Party Connections</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 10px;
-    }
-    ul {
-      padding-left: 20px;
-    }
-    li {
-      margin-bottom: 5px;
-    }
-  </style>
+    <title>Privacy Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 300px;
+            padding: 10px;
+        }
+        h1 {
+            font-size: 18px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <h2>Third-Party Connections</h2>
-  <ul id="third-party-list">
-    <!-- Conexões de terceiros serão exibidas aqui -->
-  </ul>
+    <h1>Privacy Viewer</h1>
+    
+    <button id="toggle-third-party-domains">Show Third-Party Domains</button>
+    <ul id="third-party-domains" class="hidden"></ul>
+
+    <button id="toggle-cookies-info">Show Cookies</button>
+    <ul id="cookies-info" class="hidden"></ul>
+
+    <button id="toggle-local-storage">Show Local Storage</button>
+    <ul id="local-storage-info" class="hidden"></ul>
+
+    <button id="toggle-session-storage">Show Session Storage</button>
+    <ul id="session-storage-info" class="hidden"></ul>
+
+    <script src="popup.js"></script>
 </body>
-<script src="popup.js"></script>
 </html>

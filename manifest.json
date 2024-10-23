@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
-    "name": "Canvas Fingerprint Detector",
+    "name": "Privacy Viewer",
     "version": "1.0",
-    "description": "Detecta técnicas de canvas fingerprinting",
+    "description": "Detecta informações sobre conexões e rastreamento",
     "background": {
       "scripts": ["background.js"],
       "persistent": false
@@ -15,7 +15,8 @@
       "<all_urls>"
     ],
     "browser_action": {
-      "default_title": "Monitor Canvas"
+      "default_title": "Privacy Viewer",
+      "default_popup": "popup.html"
     },
     "content_scripts": [
       {
