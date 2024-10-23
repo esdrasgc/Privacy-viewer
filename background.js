@@ -239,7 +239,12 @@ browser.browserAction.onClicked.addListener((tab) => {
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { action, tabId, tabUrl } = message;
 
-  if (action === "getThirdPartyDomains") {
+    if (action === "detectThreats") {
+      // Envia uma mensagem ao content script para detectar ameaças
+      browser.tabs.sendMessage(tabId, { action: "detectThreats" }).then(sendResponse);
+      return true;  // Retorna true para que a resposta seja feita de forma assíncrona
+  }
+  else if (action === "getThirdPartyDomains") {
       sendResponse(getThirdPartyRequests(tabId));
   } else if (action === "categorizeCookiesAndSupercookies") {
       categorizeAndCountCookiesAndSupercookies(tabId, tabUrl).then(sendResponse);

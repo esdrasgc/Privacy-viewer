@@ -1,37 +1,45 @@
-// Função para alternar a visibilidade de uma seção e atualizar o botão com a quantidade
-function toggleSection(buttonId, sectionId) {
+// Função para alternar a visibilidade de uma seção e recalcular a contagem ao alternar para "Hide"
+function toggleSection(buttonId, sectionId, calculateTotalFunc) {
     const button = document.getElementById(buttonId);
     const section = document.getElementById(sectionId);
 
     button.addEventListener('click', () => {
         if (section.classList.contains('hidden')) {
+            // Quando mostrar a seção, mantém o texto "Hide"
             section.classList.remove('hidden');
-            button.textContent = `Hide ${button.textContent.split(' ')[1]} (${section.children.length})`;  // Altera o texto do botão com a quantidade
+            button.textContent = `Hide ${button.textContent.split(' ')[1]}`;
         } else {
+            // Quando esconder a seção, recalcula a contagem
             section.classList.add('hidden');
-            button.textContent = `Show ${button.textContent.split(' ')[1]} (${section.children.length})`;
+            const totalCount = calculateTotalFunc();  // Função que calcula o total atual
+            button.textContent = `Show ${button.textContent.split(' ')[1]} (${totalCount})`;
         }
     });
 }
 
-// Função para exibir domínios de terceiros no popup e atualizar o botão com a quantidade
+// Função para exibir domínios de terceiros e atualizar o botão com a contagem correta
 function displayThirdPartyDomains(domains) {
     const list = document.getElementById('third-party-domains');
+    list.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
+
     domains.forEach(domain => {
         const li = document.createElement('li');
         li.textContent = domain;
         list.appendChild(li);
     });
-    // Atualiza o texto do botão com a quantidade de domínios
-    document.getElementById('toggle-third-party-domains').textContent = `Show Third-Party Domains (${domains.length})`;
+
+    const totalCount = domains.length;
+    document.getElementById('toggle-third-party-domains').textContent = `Show Third-Party Domains (${totalCount})`;
+
+    // Chama o toggleSection com uma função que retorna a contagem de domínios
+    toggleSection('toggle-third-party-domains', 'third-party-domains', () => totalCount);
 }
 
-// Função para exibir informações de cookies e supercookies no popup e atualizar o botão com a soma correta
+// Função para exibir informações de cookies e atualizar o botão com a contagem correta
 function displayCookiesInfo(cookieData) {
     const list = document.getElementById('cookies-info');
     let totalCookies = 0;
-    // Limpa a lista antes de adicionar novos elementos
-    list.innerHTML = ''; 
+    list.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
 
     // Para cada categoria de cookie, adiciona a quantidade ao total
     for (const [category, count] of Object.entries(cookieData)) {
@@ -43,62 +51,90 @@ function displayCookiesInfo(cookieData) {
 
     // Atualiza o texto do botão com a quantidade total de cookies
     document.getElementById('toggle-cookies-info').textContent = `Show Cookies (${totalCookies})`;
+
+    // Chama o toggleSection com uma função que retorna a contagem de cookies
+    toggleSection('toggle-cookies-info', 'cookies-info', () => totalCookies);
 }
 
-
-// Função para exibir localStorage no popup e atualizar o botão com a quantidade
+// Função para exibir localStorage e atualizar o botão com a contagem correta
 function displayLocalStorage(localStorageData) {
     const list = document.getElementById('local-storage-info');
+    list.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
+
     const totalItems = Object.keys(localStorageData).length;
+
     for (const [key, value] of Object.entries(localStorageData)) {
         const li = document.createElement('li');
         li.textContent = `${key}: ${value}`;
         list.appendChild(li);
     }
-    // Atualiza o texto do botão com a quantidade de itens no localStorage
+
     document.getElementById('toggle-local-storage').textContent = `Show Local Storage (${totalItems})`;
+
+    // Chama o toggleSection com uma função que retorna a contagem de itens do localStorage
+    toggleSection('toggle-local-storage', 'local-storage-info', () => totalItems);
 }
 
-// Função para exibir sessionStorage no popup e atualizar o botão com a quantidade
+// Função para exibir sessionStorage e atualizar o botão com a contagem correta
 function displaySessionStorage(sessionStorageData) {
     const list = document.getElementById('session-storage-info');
+    list.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
+
     const totalItems = Object.keys(sessionStorageData).length;
+
     for (const [key, value] of Object.entries(sessionStorageData)) {
         const li = document.createElement('li');
         li.textContent = `${key}: ${value}`;
         list.appendChild(li);
     }
-    // Atualiza o texto do botão com a quantidade de itens no sessionStorage
+
     document.getElementById('toggle-session-storage').textContent = `Show Session Storage (${totalItems})`;
+
+    // Chama o toggleSection com uma função que retorna a contagem de itens do sessionStorage
+    toggleSection('toggle-session-storage', 'session-storage-info', () => totalItems);
+}
+
+// Função para exibir possíveis ameaças detectadas no popup e atualizar o botão com a contagem de ameaças
+function displayThreats(threats) {
+    const list = document.getElementById('threat-info');
+    list.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
+
+    threats.forEach((threat) => {
+        const li = document.createElement('li');
+        li.textContent = threat;
+        list.appendChild(li);
+    });
+
+    const totalThreats = threats.length;
+    document.getElementById('toggle-threats').textContent = `Show Threats (${totalThreats})`;
+
+    // Chama o toggleSection com uma função que retorna a contagem de ameaças
+    toggleSection('toggle-threats', 'threat-info', () => totalThreats);
 }
 
 // Quando o popup é aberto, busca os dados do background
 browser.tabs.query({active: true, currentWindow: true}, (tabs) => {
     const tab = tabs[0];
 
-    // Obtém domínios de terceiros
+    // Detecta possíveis ameaças
+    browser.runtime.sendMessage({ action: "detectThreats", tabId: tab.id }).then((threats) => {
+        displayThreats(threats);
+    });
+
+    // Outras funções para exibir domínios, cookies, localStorage e sessionStorage
     browser.runtime.sendMessage({ action: "getThirdPartyDomains", tabId: tab.id }).then((domains) => {
         displayThirdPartyDomains(domains);
     });
 
-    // Obtém cookies e supercookies
     browser.runtime.sendMessage({ action: "categorizeCookiesAndSupercookies", tabId: tab.id, tabUrl: tab.url }).then((cookieData) => {
         displayCookiesInfo(cookieData);
     });
 
-    // Obtém localStorage
     browser.runtime.sendMessage({ action: "getLocalStorage", tabId: tab.id }).then((localStorageData) => {
         displayLocalStorage(localStorageData);
     });
 
-    // Obtém sessionStorage
     browser.runtime.sendMessage({ action: "getSessionStorage", tabId: tab.id }).then((sessionStorageData) => {
         displaySessionStorage(sessionStorageData);
     });
 });
-
-// Adiciona comportamento de mostrar/ocultar para cada seção
-toggleSection('toggle-third-party-domains', 'third-party-domains');
-toggleSection('toggle-cookies-info', 'cookies-info');
-toggleSection('toggle-local-storage', 'local-storage-info');
-toggleSection('toggle-session-storage', 'session-storage-info');

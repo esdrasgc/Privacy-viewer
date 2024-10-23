@@ -73,3 +73,54 @@ function detectSupercookies() {
     }
   });
 
+
+
+
+
+
+
+
+
+
+
+
+  // Função para detectar hooks em funções nativas
+function detectHijacking() {
+    const threats = [];
+
+    // Funções nativas críticas que podem ser modificadas por scripts maliciosos
+    const nativeFunctions = {
+        alert: window.alert,
+        consoleLog: console.log,
+        fetch: window.fetch,
+        XMLHttpRequest: window.XMLHttpRequest.prototype.send
+    };
+
+    // Verifica se as funções foram substituídas
+    if (window.alert !== nativeFunctions.alert) {
+        threats.push('Possible hook detected: alert function has been modified.');
+    }
+
+    if (console.log !== nativeFunctions.consoleLog) {
+        threats.push('Possible hook detected: console.log function has been modified.');
+    }
+
+    if (window.fetch !== nativeFunctions.fetch) {
+        threats.push('Possible hook detected: fetch function has been modified.');
+    }
+
+    if (window.XMLHttpRequest.prototype.send !== nativeFunctions.XMLHttpRequest) {
+        threats.push('Possible hook detected: XMLHttpRequest.send has been modified.');
+    }
+
+    return threats;
+}
+
+// Listener para receber a mensagem de background para detecção de ameaças
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'detectThreats') {
+        const threats = detectHijacking();
+        sendResponse(threats);
+    }
+});
+
