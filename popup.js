@@ -138,3 +138,74 @@ browser.tabs.query({active: true, currentWindow: true}, (tabs) => {
         displaySessionStorage(sessionStorageData);
     });
 });
+
+
+
+
+// Função para calcular a pontuação de privacidade
+function calculatePrivacyScore(domains, cookies, localStorageData, sessionStorageData, threats) {
+    let score = 10;  // Pontuação inicial
+
+    // Se houver ameaças, a pontuação cai para 0
+    if (threats.length > 0) {
+        return 0;
+    }
+
+    // Redução com base nas conexões de terceiros
+    const thirdPartyConnections = domains.length;
+    score -= thirdPartyConnections * 0.2;  // Cada conexão de terceiro reduz 0,2
+    score = Math.max(score, 0);  // Certifica que a pontuação não seja negativa
+
+    // Redução com base nos cookies
+    let firstPartyCookies = 0;
+    let thirdPartyCookies = 0;
+
+    for (const [category, count] of Object.entries(cookies)) {
+        if (category.includes('firstParty')) {
+            firstPartyCookies += count;
+        } else if (category.includes('thirdParty')) {
+            thirdPartyCookies += count;
+        }
+    }
+
+    // Reduz a pontuação com base nos cookies
+    score -= thirdPartyCookies * 0.5;  // Cada cookie de terceiro reduz 0,5
+    score -= firstPartyCookies * 0.1;  // Cada cookie de primeira parte reduz 0,2
+    // score = Math.max(score, 0);  // Certifica que a pontuação não seja negativa
+
+    // Redução com base no localStorage
+    if (Object.keys(localStorageData).length > 0) {
+        score -= 1;
+    }
+
+    // Redução com base no sessionStorage
+    if (Object.keys(sessionStorageData).length > 0) {
+        score -= 1;
+    }
+
+    // Garantir que a pontuação não seja negativa
+    return Math.max(score, 0);
+}
+
+// Função para exibir a pontuação de privacidade no popup
+function displayPrivacyScore(domains, cookies, localStorageData, sessionStorageData, threats) {
+    const score = calculatePrivacyScore(domains, cookies, localStorageData, sessionStorageData, threats);
+    
+    const scoreElement = document.getElementById('privacy-score');
+    scoreElement.textContent = `Privacy Score: ${score.toFixed(1)}/10`;  // Exibe a pontuação na div criada com uma casa decimal
+}
+
+// Quando o popup é aberto, busca os dados do background e calcula a pontuação
+browser.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    const tab = tabs[0];
+
+    Promise.all([
+        browser.runtime.sendMessage({ action: "getThirdPartyDomains", tabId: tab.id }),
+        browser.runtime.sendMessage({ action: "categorizeCookiesAndSupercookies", tabId: tab.id, tabUrl: tab.url }),
+        browser.runtime.sendMessage({ action: "getLocalStorage", tabId: tab.id }),
+        browser.runtime.sendMessage({ action: "getSessionStorage", tabId: tab.id }),
+        browser.runtime.sendMessage({ action: "detectThreats", tabId: tab.id })  // Adiciona a detecção de ameaças aqui
+    ]).then(([domains, cookies, localStorageData, sessionStorageData, threats]) => {
+        displayPrivacyScore(domains, cookies, localStorageData, sessionStorageData, threats);
+    });
+});

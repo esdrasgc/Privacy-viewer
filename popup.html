@@ -25,10 +25,15 @@
         .hidden {
             display: none;
         }
+        #privacy-score {
+            margin-top: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h1>Privacy Viewer</h1>
+    <div id="privacy-score"></div>
     
     <button id="toggle-third-party-domains">Show Third-Party Domains</button>
     <ul id="third-party-domains" class="hidden"></ul>
@@ -44,6 +49,8 @@
 
     <button id="toggle-threats">Show Threats</button>
     <ul id="threat-info" class="hidden"></ul>
+
+
 
     <script src="popup.js"></script>
 </body>
